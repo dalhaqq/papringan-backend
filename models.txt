@@ -1,0 +1,243 @@
+/login (done)
+Request:
+- username
+- password
+Response:
+- token
+
+/register (done)
+Request:
+- username
+- name
+- email
+- password
+- password_confirmation
+Response:
+- token
+
+/profile (done)
+Request:
+- token
+Response:
+- user_id
+- username
+- name
+- email
+- phone
+- address
+- image
+
+/change_password (done)
+Request:
+- token
+- old_password
+- new_password
+- new_password_confirmation
+Response:
+- status
+
+/change_profile (done)
+Request:
+- token
+- name
+- username
+- email
+- phone
+- address
+Response:
+- status
+
+/change_image (done)
+Request:
+- token
+- image
+Response:
+- status
+
+/ (done)
+Request:
+- token
+Response:
+- products (id, image, name, price)
+
+/search (done)
+Request:
+- token
+- keyword
+Response:
+- products (id, image, name, price)
+
+/product (done)
+Request:
+- token
+- product_id
+Response:
+- id
+- name
+- price
+- description
+- image
+- stock
+
+/add_to_cart (done)
+Request:
+- token
+- product_id
+- quantity
+Response:
+- status
+
+/cart (done)
+Request:
+- token
+Response:
+- cart_items (id, product(id, image, name, price), quantity)
+
+/update_cart (done)
+Request:
+- token
+- cart_item_id
+- quantity
+Response:
+- status
+
+/remove_from_cart (done)
+Request:
+- token
+- cart_item_id
+Response:
+- status
+
+/payment_methods (done)
+Request:
+- token
+Response:
+- payment_methods (id, name, instruction)
+
+/checkout (done + confirm)
+Request:
+- token
+- address
+- phone
+- payment_method
+- cart_items (id, product(id, image, name, price), quantity)
+Response:
+- status
+- order_id
+
+/orders (done)
+Request:
+- token
+Response:
+- orders (id, date, order_items(id, product(id, image, name, price), quantity), total, status)
+
+/order (done)
+Request:
+- token
+- order_id
+Response:
+- id
+- date
+- order_items(id, product(id, image, name, price), quantity)
+- total
+- status
+
+/chat
+Request:
+- token
+Response:
+- chats(id, time, message, sender(id, name, image))
+
+
+identify models
+
+User {
+    id
+    username
+    name
+    email
+    password
+    phone
+    address
+    image
+    created_at
+    updated_at
+}
+
+Tokens {
+    id
+    user_id
+    token
+    created_at
+    updated_at
+}
+
+Product {
+    id
+    name
+    price
+    description
+    image
+    stock
+    weight
+    dimension_x
+    dimension_y
+    dimension_z
+    created_at
+    updated_at
+}
+
+CartItem {
+    id
+    user_id
+    product_id
+    quantity
+    created_at
+    updated_at
+}
+
+PaymentMethod {
+    id
+    name
+    instruction
+    created_at
+    updated_at
+}
+
+Order {
+    id
+    user_id
+    address
+    phone
+    payment_method_id
+    shipping_cost
+    status
+    created_at
+    updated_at
+}
+
+OrderItem {
+    id
+    order_id
+    product_id
+    quantity
+    created_at
+    updated_at
+}
+
+Chat {
+    id
+    user_id
+    message
+    is_reply
+    created_at
+    updated_at
+}
+
+Token -> User (1:1)
+Product -> CartItem (1:N)
+User -> CartItem (1:N)
+User -> Order (1:N)
+Order -> OrderItem (1:N)
+Product -> OrderItem (1:N)
+User -> Chat (1:N)
