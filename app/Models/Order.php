@@ -26,6 +26,15 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function total()
+    {
+        $total = 0;
+        foreach ($this->items as $item) {
+            $total += $item->product->price * $item->quantity;
+        }
+        return $total + $this->shipping_cost;
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);

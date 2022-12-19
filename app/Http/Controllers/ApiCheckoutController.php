@@ -9,6 +9,82 @@ use Illuminate\Support\Facades\Validator;
 
 class ApiCheckoutController extends Controller
 {
+    public function checkoutProduct(Request $request)
+    {
+        $customer = $request->customer;
+        if ($customer->city_id == null || $customer->address == null || $customer->phone == null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Please set your city, address, and phone number first',
+            ], 400);
+        }
+        
+        $cartItem = CartItem::create([
+            'customer_id' => $customer->id,
+            'product_id' => $request->product_id,
+            'quantity' => 1,
+        ]);
+
+        $actualWeight = $cartItem->product->weight * $cartItem->quantity;
+        $volumeWeight = $cartItem->product->dimension_x * $cartItem->product->dimension_y * $cartItem->product->dimension_z * $cartItem->quantity;
+        $total = $cartItem->product->price * $cartItem->quantity;
+
+        $volumeWeight = $volumeWeight / 5000;
+        $weight = $actualWeight > $volumeWeight ? $actualWeight : $volumeWeight;
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://api.rajaongkir.com/starter/cost",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "origin=" . env('RAJAONGKIR_ORIGIN') . "&destination=" . $customer->city_id . "&weight=" . $weight . "&courier=jne",
+            CURLOPT_HTTPHEADER => array(
+                "content-type: application/x-www-form-urlencoded",
+                "key: " . env('RAJAONGKIR_API_KEY')
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        if ($err) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $err,
+            ], 400);
+        }
+        $response = json_decode($response);
+        $shippingOptions = [];
+        $id = 1;
+        foreach ($response->rajaongkir->results as $result) {
+            foreach ($result->costs as $cost) {
+                if ($cost->cost[0]->etd != "") {
+                    $shippingOptions[] = [
+                        'id' => $id++,
+                        'code' => $result->code,
+                        'courier' => $result->name,
+                        'service' => $cost->service,
+                        'description' => $cost->description,
+                        'cost' => $cost->cost[0]->value,
+                        'etd' => $cost->cost[0]->etd,
+                    ];
+                }
+            }
+        }
+        $paymentMethods = PaymentMethod::all();
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'cartItems' => [$cartItem],
+                'total' => $total,
+                'shippingOptions' => $shippingOptions,
+                'paymentMethods' => $paymentMethods,
+            ],
+        ]);
+    }
+    
     public function checkout(Request $request)
     {
         $customer = $request->customer;
@@ -29,12 +105,14 @@ class ApiCheckoutController extends Controller
                 'message' => 'No cart item selected'
             ]);
         }
-        foreach ($cartItemsId as  $cartItemId) {
+        foreach ($cartItemsId as $cartItemId) {
             $cartItem = CartItem::with('product')->find($cartItemId);
-            $cartItems[] = $cartItem;
-            $actualWeight += $cartItem->product->weight * $cartItem->quantity;
-            $volumeWeight += $cartItem->product->dimension_x * $cartItem->product->dimension_y * $cartItem->product->dimension_z * $cartItem->quantity;
-            $total += $cartItem->product->price * $cartItem->quantity;
+            if ($cartItem) {
+                $cartItems[] = $cartItem;
+                $actualWeight += $cartItem->product->weight * $cartItem->quantity;
+                $volumeWeight += $cartItem->product->dimension_x * $cartItem->product->dimension_y * $cartItem->product->dimension_z * $cartItem->quantity;
+                $total += $cartItem->product->price * $cartItem->quantity;
+            }
         }
         $volumeWeight = $volumeWeight / 5000;
         $weight = $actualWeight > $volumeWeight ? $actualWeight : $volumeWeight;

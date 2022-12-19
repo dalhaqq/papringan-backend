@@ -21,6 +21,15 @@ class Product extends Model
         'dimension_z'
     ];
 
+    // image getter modify url
+    public function getImageAttribute($value)
+    {
+        $value = str_replace('public', 'storage', $value);
+        $value = url($value);
+        return $value;
+        // return str_replace('localhost', '192.168.43.12', $value);
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);

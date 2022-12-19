@@ -14,6 +14,11 @@ class ProductController extends Controller
         return view('products.index', compact('products'));
     }
 
+    public function show(Request $request, Product $product)
+    {
+        return view('products.show', compact('product'));
+    }
+
     public function create(Request $request)
     {
         return view('products.create');
@@ -100,6 +105,12 @@ class ProductController extends Controller
             'dimension_z' => $request->dimension_z,
         ]);
 
+        return redirect()->route('products.index');
+    }
+
+    public function destroy(Request $request, Product $product)
+    {
+        $product->delete();
         return redirect()->route('products.index');
     }
 }

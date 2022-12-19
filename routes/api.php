@@ -46,20 +46,19 @@ Route::middleware('check.token')->group(function () {
     Route::controller(ApiCartController::class)->prefix('cart')->name('cart.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'add')->name('add');
-        Route::post('/{id}/update', 'update')->name('update');
-        Route::post('/{id}/remove', 'remove')->name('remove');
+        Route::post('/update', 'update')->name('update');
+        Route::post('/remove', 'remove')->name('remove');
     });
     Route::controller(ApiCheckoutController::class)->prefix('checkout')->name('checkout.')->group(function () {
         Route::post('/', 'checkout')->name('checkout');
         Route::post('/confirm', 'confirmCheckout')->name('confirmCheckout');
         Route::get('/payments', 'payments')->name('payments');
+        Route::post('/product', 'checkoutProduct')->name('checkoutProduct');
     });
     Route::controller(ApiOrderController::class)->prefix('order')->name('order.')->group(function () {
         Route::get('/pesanan', 'pesanan')->name('pesanan');
         Route::get('/', 'index')->name('index');
         Route::get('/{id}', 'show')->name('show');
-        Route::post('/', 'pesan')->name('pesan');
-        Route::post('/hapus', 'hapus')->name('hapus');
     });
     Route::controller(ApiChatController::class)->prefix('chat')->name('chat.')->group(function () {
         Route::get('/', 'index')->name('index');

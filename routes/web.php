@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,14 +17,23 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', function () {
+    Route::get('/dashboard', function () {
         return view('dashboard');
+    })->name('dashboard');
+    Route::prefix('/products')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('products.index');
+        Route::get('/create', [ProductController::class, 'create'])->name('products.create');
+        Route::post('/', [ProductController::class, 'store'])->name('products.store');
+        Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::get('/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     });
-    Route::get('/table', function () {
-        return view('tables');
-    });
-    Route::get('/form', function () {
-        return view('forms');
+    Route::prefix('/orders')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('orders.index');
+        Route::post('/{order}/confirm-payment', [OrderController::class, 'confirmPayment'])->name('orders.confirmPayment');
+        Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::post('/{order}/ship', [OrderController::class, 'ship'])->name('orders.ship');
     });
 });
 

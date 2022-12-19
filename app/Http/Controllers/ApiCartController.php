@@ -93,9 +93,12 @@ class ApiCartController extends Controller
             ]);
         }
 
+        if ($cartItem->quantity == 0) {
+            $cartItem->delete();
+        }
+
         return response()->json([
-            'status' => 'success',
-            'data' => $cartItem,
+            'status' => 'success'
         ]);
     }
 }
